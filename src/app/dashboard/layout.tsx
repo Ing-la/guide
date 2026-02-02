@@ -17,15 +17,15 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  let { data: profile } = await supabase
+  let { data: profile, error: profileError } = await supabase
     .from('guide_profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  if (!profile) {
+  if (!profile || profileError) {
     try {
-      const { data: newProfile } = await supabase
+      const { data: newProfile, error: insertError } = await supabase
         .from('guide_profiles')
         .insert({
           id: user.id,
@@ -35,16 +35,46 @@ export default async function DashboardLayout({
         })
         .select()
         .single()
-      profile = newProfile
+      
+      if (insertError) {
+        console.error('Failed to create profile:', insertError)
+        // 如果插入失败，创建一个默认的 profile 对象
+        profile = {
+          id: user.id,
+          email: user.email || null,
+          nickname: user.email?.split('@')[0] || 'User',
+          role: 'user' as const,
+          phone: null,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+      } else {
+        profile = newProfile
+      }
     } catch (error) {
       console.error('Failed to create profile:', error)
+      // 如果创建失败，使用默认值
+      profile = {
+        id: user.id,
+        email: user.email || null,
+        nickname: user.email?.split('@')[0] || 'User',
+        role: 'user' as const,
+        phone: null,
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
     }
   }
 
+  // 确保 role 字段存在，如果不存在或为 NULL，默认为 'user'
+  const userRole = profile?.role || 'user'
+  
   // 根据角色显示不同的导航
-  const isAdmin = profile?.role === 'admin'
-  const isGuide = profile?.role === 'guide'
-  const isUser = profile?.role === 'user'
+  const isAdmin = userRole === 'admin'
+  const isGuide = userRole === 'guide'
+  const isUser = userRole === 'user'
 
   return (
     <div className="flex h-screen bg-gray-100">

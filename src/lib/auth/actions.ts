@@ -117,11 +117,19 @@ export async function signIn(formData: FormData) {
     }
     
     // 获取用户角色并重定向
-    const { data: userProfile } = await supabase
+    const { data: userProfile, error: roleError } = await supabase
       .from('guide_profiles')
       .select('role')
       .eq('id', signInData.user.id)
       .single()
+    
+    if (roleError) {
+      console.error('Failed to fetch user role:', roleError)
+      // 如果查询失败，默认重定向到用户中心
+      revalidatePath('/', 'layout')
+      redirect('/dashboard/user')
+      return
+    }
     
     const userRole = userProfile?.role || 'user'
     
