@@ -5,10 +5,10 @@ export default async function DashboardPage() {
 
   // 获取统计数据
   const [usersCount, guidesCount, demandsCount, ordersCount] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact', head: true }),
-    supabase.from('guides').select('id', { count: 'exact', head: true }),
-    supabase.from('demands').select('id', { count: 'exact', head: true }),
-    supabase.from('orders').select('id', { count: 'exact', head: true }),
+    supabase.from('guide_profiles').select('id', { count: 'exact', head: true }),
+    supabase.from('guide_guides').select('id', { count: 'exact', head: true }),
+    supabase.from('guide_demands').select('id', { count: 'exact', head: true }),
+    supabase.from('guide_orders').select('id', { count: 'exact', head: true }),
   ])
 
   const stats = [

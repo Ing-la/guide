@@ -7,7 +7,7 @@ import type { Order } from '@/types/database'
 export async function getOrders(search?: string, status?: string) {
   const supabase = await createClient()
 
-  let query = supabase.from('orders').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('guide_orders').select('*').order('created_at', { ascending: false })
 
   if (status) {
     query = query.eq('status', status)
@@ -25,7 +25,7 @@ export async function getOrders(search?: string, status?: string) {
 export async function getOrderById(id: string) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('orders').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('guide_orders').select('*').eq('id', id).single()
 
   if (error) {
     throw new Error(error.message)
@@ -42,7 +42,7 @@ export async function updateOrder(id: string, formData: FormData) {
     status: formData.get('status') as 'pending' | 'paid' | 'completed' | 'cancelled',
   }
 
-  const { error } = await supabase.from('orders').update(data).eq('id', id)
+  const { error } = await supabase.from('guide_orders').update(data).eq('id', id)
 
   if (error) {
     return { error: error.message }
@@ -55,7 +55,7 @@ export async function updateOrder(id: string, formData: FormData) {
 export async function deleteOrder(id: string) {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('orders').delete().eq('id', id)
+  const { error } = await supabase.from('guide_orders').delete().eq('id', id)
 
   if (error) {
     return { error: error.message }

@@ -6,7 +6,7 @@ async function ComplaintsList() {
   const supabase = await createClient()
 
   const { data: complaints, error } = await supabase
-    .from('complaints')
+    .from('guide_complaints')
     .select('*')
     .order('created_at', { ascending: false })
 

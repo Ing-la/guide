@@ -7,7 +7,7 @@ import type { Demand } from '@/types/database'
 export async function getDemands(search?: string, status?: string) {
   const supabase = await createClient()
 
-  let query = supabase.from('demands').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('guide_demands').select('*').order('created_at', { ascending: false })
 
   if (search) {
     query = query.or(`city.ilike.%${search}%,description.ilike.%${search}%`)
@@ -29,7 +29,7 @@ export async function getDemands(search?: string, status?: string) {
 export async function getDemandById(id: string) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('demands').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('guide_demands').select('*').eq('id', id).single()
 
   if (error) {
     throw new Error(error.message)
@@ -63,7 +63,7 @@ export async function updateDemand(id: string, formData: FormData) {
 export async function deleteDemand(id: string) {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('demands').delete().eq('id', id)
+  const { error } = await supabase.from('guide_demands').delete().eq('id', id)
 
   if (error) {
     return { error: error.message }

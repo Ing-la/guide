@@ -1,5 +1,4 @@
--- 创建 profiles 表（扩展用户信息）
-CREATE TABLE IF NOT EXISTS public.profiles (
+CREATE TABLE IF NOT EXISTS public.guide_profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   phone TEXT,
   nickname TEXT,
@@ -9,10 +8,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 创建导游表
-CREATE TABLE IF NOT EXISTS public.guides (
+CREATE TABLE IF NOT EXISTS public.guide_guides (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.guide_profiles(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   phone TEXT,
   avatar_url TEXT,
@@ -23,10 +21,9 @@ CREATE TABLE IF NOT EXISTS public.guides (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 创建需求表
-CREATE TABLE IF NOT EXISTS public.demands (
+CREATE TABLE IF NOT EXISTS public.guide_demands (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.guide_profiles(id) ON DELETE CASCADE,
   city TEXT,
   attractions TEXT[],
   budget NUMERIC(10, 2),
@@ -37,29 +34,26 @@ CREATE TABLE IF NOT EXISTS public.demands (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 创建订单表
-CREATE TABLE IF NOT EXISTS public.orders (
+CREATE TABLE IF NOT EXISTS public.guide_orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  demand_id UUID REFERENCES public.demands(id) ON DELETE SET NULL,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  guide_id UUID REFERENCES public.guides(id) ON DELETE SET NULL,
+  demand_id UUID REFERENCES public.guide_demands(id) ON DELETE SET NULL,
+  user_id UUID REFERENCES public.guide_profiles(id) ON DELETE CASCADE,
+  guide_id UUID REFERENCES public.guide_guides(id) ON DELETE SET NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'completed', 'cancelled')),
   amount NUMERIC(10, 2),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 创建投诉表
-CREATE TABLE IF NOT EXISTS public.complaints (
+CREATE TABLE IF NOT EXISTS public.guide_complaints (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
+  order_id UUID REFERENCES public.guide_orders(id) ON DELETE SET NULL,
   type TEXT CHECK (type IN ('order', 'chat')),
   content TEXT NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'resolved')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 创建导游头衔表
 CREATE TABLE IF NOT EXISTS public.guide_titles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -69,19 +63,17 @@ CREATE TABLE IF NOT EXISTS public.guide_titles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 创建索引
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
-CREATE INDEX IF NOT EXISTS idx_guides_user_id ON public.guides(user_id);
-CREATE INDEX IF NOT EXISTS idx_guides_status ON public.guides(status);
-CREATE INDEX IF NOT EXISTS idx_demands_user_id ON public.demands(user_id);
-CREATE INDEX IF NOT EXISTS idx_demands_status ON public.demands(status);
-CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.orders(user_id);
-CREATE INDEX IF NOT EXISTS idx_orders_guide_id ON public.orders(guide_id);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
-CREATE INDEX IF NOT EXISTS idx_complaints_order_id ON public.complaints(order_id);
-CREATE INDEX IF NOT EXISTS idx_complaints_status ON public.complaints(status);
+CREATE INDEX IF NOT EXISTS idx_guide_profiles_role ON public.guide_profiles(role);
+CREATE INDEX IF NOT EXISTS idx_guide_guides_user_id ON public.guide_guides(user_id);
+CREATE INDEX IF NOT EXISTS idx_guide_guides_status ON public.guide_guides(status);
+CREATE INDEX IF NOT EXISTS idx_guide_demands_user_id ON public.guide_demands(user_id);
+CREATE INDEX IF NOT EXISTS idx_guide_demands_status ON public.guide_demands(status);
+CREATE INDEX IF NOT EXISTS idx_guide_orders_user_id ON public.guide_orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_guide_orders_guide_id ON public.guide_orders(guide_id);
+CREATE INDEX IF NOT EXISTS idx_guide_orders_status ON public.guide_orders(status);
+CREATE INDEX IF NOT EXISTS idx_guide_complaints_order_id ON public.guide_complaints(order_id);
+CREATE INDEX IF NOT EXISTS idx_guide_complaints_status ON public.guide_complaints(status);
 
--- 创建更新时间触发器函数
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -90,119 +82,115 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 为需要的表添加更新时间触发器
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles
+CREATE TRIGGER update_guide_profiles_updated_at BEFORE UPDATE ON public.guide_profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_guides_updated_at BEFORE UPDATE ON public.guides
+CREATE TRIGGER update_guide_guides_updated_at BEFORE UPDATE ON public.guide_guides
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_demands_updated_at BEFORE UPDATE ON public.demands
+CREATE TRIGGER update_guide_demands_updated_at BEFORE UPDATE ON public.guide_demands
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON public.orders
+CREATE TRIGGER update_guide_orders_updated_at BEFORE UPDATE ON public.guide_orders
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_guide_titles_updated_at BEFORE UPDATE ON public.guide_titles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- 创建用户注册时自动创建 profile 的函数
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_guide_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, phone, nickname, role)
-  VALUES (
-    NEW.id,
-    NEW.raw_user_meta_data->>'phone',
-    COALESCE(NEW.raw_user_meta_data->>'nickname', NEW.email),
-    'user'
-  );
+  IF NEW.raw_user_meta_data->>'project' = 'guide' OR NEW.raw_user_meta_data->>'project' IS NULL THEN
+    INSERT INTO public.guide_profiles (id, phone, nickname, role)
+    VALUES (
+      NEW.id,
+      NEW.raw_user_meta_data->>'phone',
+      COALESCE(NEW.raw_user_meta_data->>'nickname', NEW.email),
+      'user'
+    ) ON CONFLICT (id) DO NOTHING;
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 创建触发器
-CREATE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created_guide ON auth.users;
+CREATE TRIGGER on_auth_user_created_guide
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+  FOR EACH ROW EXECUTE FUNCTION public.handle_guide_new_user();
 
--- 启用 Row Level Security
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.guides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.demands ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_guides ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_demands ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guide_complaints ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guide_titles ENABLE ROW LEVEL SECURITY;
 
--- RLS 策略：管理员可以访问所有数据
-CREATE POLICY "Admins can view all profiles" ON public.profiles
+CREATE POLICY "Guide admins can view all profiles" ON public.guide_profiles
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Admins can update all profiles" ON public.profiles
+CREATE POLICY "Guide admins can update all profiles" ON public.guide_profiles
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Admins can delete all profiles" ON public.profiles
+CREATE POLICY "Guide admins can delete all profiles" ON public.guide_profiles
   FOR DELETE USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
--- 用户可以查看和更新自己的 profile
-CREATE POLICY "Users can view own profile" ON public.profiles
+CREATE POLICY "Guide users can view own profile" ON public.guide_profiles
   FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "Users can update own profile" ON public.profiles
+CREATE POLICY "Guide users can update own profile" ON public.guide_profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- 类似的策略应用到其他表（管理员全权限）
-CREATE POLICY "Admins can manage guides" ON public.guides
+CREATE POLICY "Guide admins can manage guides" ON public.guide_guides
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Admins can manage demands" ON public.demands
+CREATE POLICY "Guide admins can manage demands" ON public.guide_demands
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Admins can manage orders" ON public.orders
+CREATE POLICY "Guide admins can manage orders" ON public.guide_orders
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Admins can manage complaints" ON public.complaints
+CREATE POLICY "Guide admins can manage complaints" ON public.guide_complaints
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
-CREATE POLICY "Admins can manage guide_titles" ON public.guide_titles
+CREATE POLICY "Guide admins can manage guide_titles" ON public.guide_titles
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.profiles
+      SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
   );

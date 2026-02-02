@@ -14,6 +14,7 @@ export async function signUp(formData: FormData) {
       data: {
         phone: formData.get('phone') as string,
         nickname: formData.get('nickname') as string,
+        project: 'guide', // 标识这是 guide 项目的用户
       },
     },
   }

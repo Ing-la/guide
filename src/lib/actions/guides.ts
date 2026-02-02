@@ -25,7 +25,7 @@ export async function getGuides(search?: string) {
 export async function getGuideById(id: string) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('guides').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('guide_guides').select('*').eq('id', id).single()
 
   if (error) {
     throw new Error(error.message)
@@ -57,7 +57,7 @@ export async function updateGuide(id: string, formData: FormData) {
 export async function deleteGuide(id: string) {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('guides').delete().eq('id', id)
+  const { error } = await supabase.from('guide_guides').delete().eq('id', id)
 
   if (error) {
     return { error: error.message }

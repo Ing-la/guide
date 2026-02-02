@@ -7,7 +7,7 @@ import type { Profile } from '@/types/database'
 export async function getUsers(search?: string) {
   const supabase = await createClient()
 
-  let query = supabase.from('profiles').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('guide_profiles').select('*').order('created_at', { ascending: false })
 
   if (search) {
     query = query.or(`nickname.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`)
@@ -25,7 +25,7 @@ export async function getUsers(search?: string) {
 export async function getUserById(id: string) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('guide_profiles').select('*').eq('id', id).single()
 
   if (error) {
     throw new Error(error.message)
@@ -43,7 +43,7 @@ export async function updateUser(id: string, formData: FormData) {
     role: formData.get('role') as 'admin' | 'user' | 'guide',
   }
 
-  const { error } = await supabase.from('profiles').update(data).eq('id', id)
+  const { error } = await supabase.from('guide_profiles').update(data).eq('id', id)
 
   if (error) {
     return { error: error.message }
@@ -57,7 +57,7 @@ export async function deleteUser(id: string) {
   const supabase = await createClient()
 
   // 先删除 profile（会级联删除相关数据）
-  const { error } = await supabase.from('profiles').delete().eq('id', id)
+  const { error } = await supabase.from('guide_profiles').delete().eq('id', id)
 
   if (error) {
     return { error: error.message }
