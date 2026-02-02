@@ -69,8 +69,25 @@ export default function RegisterPage({
                 name="nickname"
                 type="text"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                placeholder="你的昵称"
+                placeholder="你的昵称（可选）"
               />
+            </div>
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                注册类型
+              </label>
+              <select
+                id="role"
+                name="role"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                defaultValue="user"
+              >
+                <option value="user">普通用户</option>
+                <option value="guide">导游</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                注意：管理员账号需要由现有管理员在后台设置
+              </p>
             </div>
           </div>
 

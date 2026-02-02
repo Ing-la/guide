@@ -11,6 +11,12 @@ export async function signUp(formData: FormData) {
   const password = formData.get('password') as string
   const phone = formData.get('phone') as string
   const nickname = formData.get('nickname') as string
+  const role = (formData.get('role') as 'user' | 'guide') || 'user'
+
+  if (!email || !password) {
+    redirect(`/register?error=${encodeURIComponent('邮箱和密码为必填项')}`)
+    return
+  }
 
   const data = {
     email,
@@ -31,25 +37,28 @@ export async function signUp(formData: FormData) {
     return
   }
 
-  if (signUpData.user) {
-    try {
-      const { error: profileError } = await supabase.from('guide_profiles').insert({
-        id: signUpData.user.id,
-        phone: phone || null,
-        nickname: nickname || email.split('@')[0],
-        role: 'user',
-      })
-      
-      if (profileError) {
-        console.error('Failed to create profile:', profileError)
-        redirect(`/register?error=${encodeURIComponent('注册成功，但创建用户资料失败，请稍后重试登录')}`)
-        return
-      }
-    } catch (profileError) {
+  if (!signUpData.user) {
+    redirect(`/register?error=${encodeURIComponent('注册失败，请重试')}`)
+    return
+  }
+
+  try {
+    const { error: profileError } = await supabase.from('guide_profiles').insert({
+      id: signUpData.user.id,
+      phone: phone || null,
+      nickname: nickname || email.split('@')[0],
+      role: role,
+    })
+    
+    if (profileError) {
       console.error('Failed to create profile:', profileError)
-      redirect(`/register?error=${encodeURIComponent('注册成功，但创建用户资料失败，请稍后重试登录')}`)
+      redirect(`/register?error=${encodeURIComponent(`注册成功，但创建用户资料失败: ${profileError.message}`)}`)
       return
     }
+  } catch (profileError: any) {
+    console.error('Failed to create profile:', profileError)
+    redirect(`/register?error=${encodeURIComponent(`注册成功，但创建用户资料失败: ${profileError?.message || '未知错误'}`)}`)
+    return
   }
 
   revalidatePath('/', 'layout')
