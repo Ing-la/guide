@@ -17,11 +17,28 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from('guide_profiles')
     .select('*')
     .eq('id', user.id)
     .single()
+
+  if (!profile) {
+    try {
+      const { data: newProfile } = await supabase
+        .from('guide_profiles')
+        .insert({
+          id: user.id,
+          nickname: user.email?.split('@')[0] || 'User',
+          role: 'user',
+        })
+        .select()
+        .single()
+      profile = newProfile
+    } catch (error) {
+      console.error('Failed to create profile:', error)
+    }
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">

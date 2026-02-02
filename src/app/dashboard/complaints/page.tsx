@@ -3,16 +3,25 @@ import { Suspense } from 'react'
 import type { Complaint } from '@/types/database'
 
 async function ComplaintsList() {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  const { data: complaints, error } = await supabase
-    .from('guide_complaints')
-    .select('*')
-    .order('created_at', { ascending: false })
+    const { data: complaints, error } = await supabase
+      .from('guide_complaints')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  if (error) {
-    return <div className="text-red-500">加载失败: {error.message}</div>
-  }
+    if (error) {
+      return (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+          <h3 className="text-lg font-semibold text-red-800">加载失败</h3>
+          <p className="mt-2 text-sm text-red-600">{error.message}</p>
+          <p className="mt-4 text-xs text-red-500">
+            请检查数据库连接和 RLS 策略配置
+          </p>
+        </div>
+      )
+    }
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
@@ -79,7 +88,20 @@ async function ComplaintsList() {
         </tbody>
       </table>
     </div>
-  )
+    )
+  } catch (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <h3 className="text-lg font-semibold text-red-800">加载失败</h3>
+        <p className="mt-2 text-sm text-red-600">
+          {error instanceof Error ? error.message : '未知错误'}
+        </p>
+        <p className="mt-4 text-xs text-red-500">
+          请检查数据库连接和 RLS 策略配置
+        </p>
+      </div>
+    )
+  }
 }
 
 export default function ComplaintsPage() {

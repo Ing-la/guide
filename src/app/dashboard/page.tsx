@@ -1,15 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  // 获取统计数据
-  const [usersCount, guidesCount, demandsCount, ordersCount] = await Promise.all([
-    supabase.from('guide_profiles').select('id', { count: 'exact', head: true }),
-    supabase.from('guide_guides').select('id', { count: 'exact', head: true }),
-    supabase.from('guide_demands').select('id', { count: 'exact', head: true }),
-    supabase.from('guide_orders').select('id', { count: 'exact', head: true }),
-  ])
+    // 获取统计数据
+    const [usersCount, guidesCount, demandsCount, ordersCount] = await Promise.all([
+      supabase.from('guide_profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('guide_guides').select('id', { count: 'exact', head: true }),
+      supabase.from('guide_demands').select('id', { count: 'exact', head: true }),
+      supabase.from('guide_orders').select('id', { count: 'exact', head: true }),
+    ])
 
   const stats = [
     { name: '用户总数', value: usersCount.count || 0, color: 'bg-blue-500' },
@@ -38,5 +39,18 @@ export default async function DashboardPage() {
         ))}
       </div>
     </div>
-  )
+    )
+  } catch (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <h3 className="text-lg font-semibold text-red-800">加载失败</h3>
+        <p className="mt-2 text-sm text-red-600">
+          {error instanceof Error ? error.message : '未知错误'}
+        </p>
+        <p className="mt-4 text-xs text-red-500">
+          请检查数据库连接和 RLS 策略配置
+        </p>
+      </div>
+    )
+  }
 }

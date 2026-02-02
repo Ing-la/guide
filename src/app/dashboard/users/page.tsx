@@ -3,9 +3,10 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 
 async function UsersList({ search }: { search?: string }) {
-  const users = await getUsers(search)
+  try {
+    const users = await getUsers(search)
 
-  return (
+    return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
@@ -77,7 +78,20 @@ async function UsersList({ search }: { search?: string }) {
         </tbody>
       </table>
     </div>
-  )
+    )
+  } catch (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <h3 className="text-lg font-semibold text-red-800">加载失败</h3>
+        <p className="mt-2 text-sm text-red-600">
+          {error instanceof Error ? error.message : '未知错误'}
+        </p>
+        <p className="mt-4 text-xs text-red-500">
+          请检查数据库连接和 RLS 策略配置
+        </p>
+      </div>
+    )
+  }
 }
 
 export default async function UsersPage({
