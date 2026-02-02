@@ -64,10 +64,8 @@ export async function signUp(formData: FormData) {
 
   revalidatePath('/', 'layout')
   
-  // 根据角色重定向
-  if (role === 'admin') {
-    redirect('/dashboard')
-  } else if (role === 'guide') {
+  // 根据角色重定向（注册时只能是 user 或 guide）
+  if (role === 'guide') {
     redirect('/dashboard/guide')
   } else {
     redirect('/dashboard/user')
