@@ -191,7 +191,9 @@ CREATE POLICY "Guide admins can manage guides" ON public.guide_guides
   );
 
 CREATE POLICY "Users can create own demands" ON public.guide_demands
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT 
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can view own demands" ON public.guide_demands
   FOR SELECT USING (auth.uid() = user_id);
