@@ -1,5 +1,4 @@
 import { getUsers } from '@/lib/actions/users'
-import Link from 'next/link'
 import { Suspense } from 'react'
 
 async function UsersList({ search }: { search?: string }) {
@@ -26,15 +25,12 @@ async function UsersList({ search }: { search?: string }) {
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               创建时间
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-              操作
-            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
           {users.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+              <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                 暂无数据
               </td>
             </tr>
@@ -65,14 +61,6 @@ async function UsersList({ search }: { search?: string }) {
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                   {new Date(user.created_at).toLocaleDateString('zh-CN')}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                  <Link
-                    href={`/dashboard/users/${user.id}`}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    查看/编辑
-                  </Link>
                 </td>
               </tr>
             ))
