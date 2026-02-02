@@ -1,9 +1,38 @@
 import { getUserById, updateUser, deleteUser } from '@/lib/actions/users'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  
+  // 检查是否是管理员
+  const supabase = await createClient()
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser()
+  
+  if (!currentUser) {
+    redirect('/login')
+  }
+  
+  const { data: currentProfile } = await supabase
+    .from('guide_profiles')
+    .select('role')
+    .eq('id', currentUser.id)
+    .single()
+  
+  if (currentProfile?.role !== 'admin') {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <h1 className="mb-4 text-2xl font-bold text-gray-800">访问受限</h1>
+          <p className="text-gray-600">此功能仅限管理员使用</p>
+        </div>
+      </div>
+    )
+  }
+  
   let user
   try {
     user = await getUserById(id)
@@ -77,7 +106,9 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 邮箱
               </label>
-              <div className="mt-1 text-sm text-gray-500">{user.email || '未设置'}</div>
+              <div className="mt-1 text-sm text-gray-500">
+                {(user as any).email || '未设置（请运行 add-email-column.sql 添加 email 字段）'}
+              </div>
             </div>
 
             <div>

@@ -63,7 +63,15 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  
+  // 根据角色重定向
+  if (role === 'admin') {
+    redirect('/dashboard')
+  } else if (role === 'guide') {
+    redirect('/dashboard/guide')
+  } else {
+    redirect('/dashboard/user')
+  }
 }
 
 export async function signIn(formData: FormData) {
@@ -109,10 +117,30 @@ export async function signIn(formData: FormData) {
         return
       }
     }
+    
+    // 获取用户角色并重定向
+    const { data: userProfile } = await supabase
+      .from('guide_profiles')
+      .select('role')
+      .eq('id', signInData.user.id)
+      .single()
+    
+    const userRole = userProfile?.role || 'user'
+    
+    revalidatePath('/', 'layout')
+    
+    if (userRole === 'admin') {
+      redirect('/dashboard')
+    } else if (userRole === 'guide') {
+      redirect('/dashboard/guide')
+    } else {
+      redirect('/dashboard/user')
+    }
+    return
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  redirect('/dashboard/user')
 }
 
 export async function signOut() {

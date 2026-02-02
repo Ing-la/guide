@@ -41,50 +41,81 @@ export default async function DashboardLayout({
     }
   }
 
+  // 根据角色显示不同的导航
+  const isAdmin = profile?.role === 'admin'
+  const isGuide = profile?.role === 'guide'
+  const isUser = profile?.role === 'user'
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* 侧边栏 */}
       <aside className="w-64 bg-white shadow-lg">
         <div className="flex h-16 items-center border-b px-6">
-          <h1 className="text-xl font-bold text-gray-800">导游管理后台</h1>
+          <h1 className="text-xl font-bold text-gray-800">
+            {isAdmin ? '导游管理后台' : isGuide ? '导游中心' : '用户中心'}
+          </h1>
         </div>
         <nav className="mt-6 space-y-1 px-3">
-          <Link
-            href="/dashboard"
-            className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            仪表盘
-          </Link>
-          <Link
-            href="/dashboard/users"
-            className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            用户管理
-          </Link>
-          <Link
-            href="/dashboard/guides"
-            className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            导游管理
-          </Link>
-          <Link
-            href="/dashboard/demands"
-            className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            需求管理
-          </Link>
-          <Link
-            href="/dashboard/orders"
-            className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            订单管理
-          </Link>
-          <Link
-            href="/dashboard/complaints"
-            className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-          >
-            投诉查看
-          </Link>
+          {isAdmin && (
+            <>
+              <Link
+                href="/dashboard"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                仪表盘
+              </Link>
+              <Link
+                href="/dashboard/users"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                用户管理
+              </Link>
+              <Link
+                href="/dashboard/guides"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                导游管理
+              </Link>
+              <Link
+                href="/dashboard/demands"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                需求管理
+              </Link>
+              <Link
+                href="/dashboard/orders"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                订单管理
+              </Link>
+              <Link
+                href="/dashboard/complaints"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                投诉查看
+              </Link>
+            </>
+          )}
+          {isGuide && (
+            <>
+              <Link
+                href="/dashboard/guide"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                我的中心
+              </Link>
+            </>
+          )}
+          {isUser && (
+            <>
+              <Link
+                href="/dashboard/user"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                我的中心
+              </Link>
+            </>
+          )}
         </nav>
       </aside>
 
