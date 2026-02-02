@@ -3,7 +3,27 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 export default async function GuideDetailPage({ params }: { params: { id: string } }) {
-  const guide = await getGuideById(params.id)
+  let guide
+  try {
+    guide = await getGuideById(params.id)
+  } catch (error) {
+    return (
+      <div>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-800">导游详情</h1>
+          <Link href="/dashboard/guides" className="text-sm text-gray-600 hover:text-gray-900">
+            ← 返回列表
+          </Link>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+          <h3 className="text-lg font-semibold text-red-800">加载失败</h3>
+          <p className="mt-2 text-sm text-red-600">
+            {error instanceof Error ? error.message : '未知错误'}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   async function updateGuideAction(formData: FormData) {
     'use server'

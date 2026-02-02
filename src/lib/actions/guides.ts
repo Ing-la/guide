@@ -7,7 +7,7 @@ import type { Guide } from '@/types/database'
 export async function getGuides(search?: string) {
   const supabase = await createClient()
 
-  let query = supabase.from('guides').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('guide_guides').select('*').order('created_at', { ascending: false })
 
   if (search) {
     query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,title.ilike.%${search}%`)
@@ -44,7 +44,7 @@ export async function updateGuide(id: string, formData: FormData) {
     status: formData.get('status') as 'active' | 'inactive',
   }
 
-  const { error } = await supabase.from('guides').update(data).eq('id', id)
+  const { error } = await supabase.from('guide_guides').update(data).eq('id', id)
 
   if (error) {
     return { error: error.message }

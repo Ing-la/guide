@@ -33,14 +33,22 @@ export async function signUp(formData: FormData) {
 
   if (signUpData.user) {
     try {
-      await supabase.from('guide_profiles').insert({
+      const { error: profileError } = await supabase.from('guide_profiles').insert({
         id: signUpData.user.id,
         phone: phone || null,
         nickname: nickname || email.split('@')[0],
         role: 'user',
       })
+      
+      if (profileError) {
+        console.error('Failed to create profile:', profileError)
+        redirect(`/register?error=${encodeURIComponent('注册成功，但创建用户资料失败，请稍后重试登录')}`)
+        return
+      }
     } catch (profileError) {
       console.error('Failed to create profile:', profileError)
+      redirect(`/register?error=${encodeURIComponent('注册成功，但创建用户资料失败，请稍后重试登录')}`)
+      return
     }
   }
 
@@ -65,21 +73,29 @@ export async function signIn(formData: FormData) {
   }
 
   if (signInData.user) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('guide_profiles')
       .select('id')
       .eq('id', signInData.user.id)
       .single()
 
-    if (!profile) {
+    if (!profile && profileError?.code === 'PGRST116') {
       try {
-        await supabase.from('guide_profiles').insert({
+        const { error: insertError } = await supabase.from('guide_profiles').insert({
           id: signInData.user.id,
           nickname: email.split('@')[0],
           role: 'user',
         })
-      } catch (profileError) {
-        console.error('Failed to create profile:', profileError)
+        
+        if (insertError) {
+          console.error('Failed to create profile:', insertError)
+          redirect(`/login?error=${encodeURIComponent('登录成功，但用户资料异常，请联系管理员')}`)
+          return
+        }
+      } catch (insertError) {
+        console.error('Failed to create profile:', insertError)
+        redirect(`/login?error=${encodeURIComponent('登录成功，但用户资料异常，请联系管理员')}`)
+        return
       }
     }
   }
