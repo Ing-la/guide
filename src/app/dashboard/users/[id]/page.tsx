@@ -64,7 +64,8 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   let user
   try {
     user = await getUserById(id)
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Failed to load user:', error)
     return (
       <div>
         <div className="mb-6 flex items-center justify-between">
@@ -76,10 +77,13 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
         <div className="rounded-lg border border-red-200 bg-red-50 p-6">
           <h3 className="text-lg font-semibold text-red-800">加载失败</h3>
           <p className="mt-2 text-sm text-red-600">
-            {error instanceof Error ? error.message : '未知错误'}
+            {error?.message || (error instanceof Error ? error.message : '未知错误')}
           </p>
           <p className="mt-4 text-xs text-red-500">
             请检查数据库连接和 RLS 策略配置
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            错误代码: {error?.code || 'N/A'} | 错误详情: {JSON.stringify(error)}
           </p>
         </div>
       </div>

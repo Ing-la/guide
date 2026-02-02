@@ -34,7 +34,17 @@ export async function getUserById(id: string) {
   const { data, error } = await supabase.from('guide_profiles').select('*').eq('id', id).single()
 
   if (error) {
-    throw new Error(error.message)
+    console.error('getUserById error:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    })
+    throw new Error(`无法获取用户信息: ${error.message} (代码: ${error.code || 'N/A'})`)
+  }
+
+  if (!data) {
+    throw new Error('用户不存在')
   }
 
   return data as Profile
