@@ -107,7 +107,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
                 邮箱
               </label>
               <div className="mt-1 text-sm text-gray-500">
-                {(user as any).email || '未设置（请运行 add-email-column.sql 添加 email 字段）'}
+                {user.email || '未设置'}
               </div>
             </div>
 
