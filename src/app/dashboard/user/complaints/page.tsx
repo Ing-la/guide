@@ -29,11 +29,8 @@ async function ComplaintsList() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    投诉导游：{complaint.guide?.name || '未知导游'}
+                    投诉导游：{complaint.guide?.nickname || complaint.guide?.email || '未知导游'}
                   </h3>
-                  {complaint.guide?.title && (
-                    <span className="text-sm text-gray-500">({complaint.guide.title})</span>
-                  )}
                   <span
                     className={`inline-flex rounded-full px-2 text-xs font-semibold ${
                       complaint.status === 'resolved'
@@ -100,7 +97,7 @@ async function CreateComplaintForm() {
           <option value="">请选择导游</option>
           {guides.map((guide) => (
             <option key={guide.id} value={guide.id}>
-              {guide.name} {guide.title ? `(${guide.title})` : ''}
+              {guide.name} {guide.email ? `(${guide.email})` : ''}
             </option>
           ))}
         </select>

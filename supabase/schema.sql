@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS public.guide_orders (
 CREATE TABLE IF NOT EXISTS public.guide_complaints (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.guide_profiles(id) ON DELETE CASCADE,
-  guide_id UUID REFERENCES public.guide_guides(id) ON DELETE SET NULL,
+  guide_id UUID REFERENCES public.guide_profiles(id) ON DELETE SET NULL,
   order_id UUID REFERENCES public.guide_orders(id) ON DELETE SET NULL,
   type TEXT CHECK (type IN ('order', 'chat')),
   content TEXT NOT NULL,
@@ -223,10 +223,7 @@ CREATE POLICY "Users can view own complaints" ON public.guide_complaints
 
 CREATE POLICY "Guides can view complaints about them" ON public.guide_complaints
   FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.guide_guides
-      WHERE id = guide_complaints.guide_id AND user_id = auth.uid()
-    )
+    guide_id = auth.uid()
   );
 
 CREATE POLICY "Guide admins can manage complaints" ON public.guide_complaints

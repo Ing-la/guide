@@ -99,10 +99,16 @@ export async function createDemand(formData: FormData) {
     }
   }
 
-  const { error } = await supabase.from('guide_demands').insert(data)
+  const { data: insertedData, error } = await supabase.from('guide_demands').insert(data).select()
 
   if (error) {
-    return { success: false, error: error.message }
+    console.error('Failed to create demand:', error)
+    return { success: false, error: `创建失败: ${error.message} (代码: ${error.code || 'N/A'})` }
+  }
+
+  if (!insertedData || insertedData.length === 0) {
+    console.error('Demand inserted but no data returned')
+    return { success: false, error: '创建失败：数据未返回' }
   }
 
   revalidatePath('/dashboard/user/demands')

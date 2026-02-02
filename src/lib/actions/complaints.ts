@@ -36,10 +36,10 @@ export async function getUserComplaints() {
     .from('guide_complaints')
     .select(`
       *,
-      guide:guide_guides (
+      guide:guide_profiles!guide_complaints_guide_id_fkey (
         id,
-        name,
-        title
+        nickname,
+        email
       )
     `)
     .eq('user_id', user.id)
@@ -49,7 +49,7 @@ export async function getUserComplaints() {
     throw new Error(error.message)
   }
 
-  return data as (Complaint & { guide: { id: string; name: string; title: string | null } | null })[]
+  return data as (Complaint & { guide: { id: string; nickname: string | null; email: string | null } | null })[]
 }
 
 // 导游获取投诉自己的投诉列表
@@ -64,17 +64,7 @@ export async function getGuideComplaints() {
     throw new Error('未登录')
   }
 
-  // 先获取导游的 guide_guides 记录
-  const { data: guideData, error: guideError } = await supabase
-    .from('guide_guides')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (guideError || !guideData) {
-    return []
-  }
-
+  // guide_id 现在直接引用 guide_profiles.id，所以直接查询
   const { data, error } = await supabase
     .from('guide_complaints')
     .select(`
@@ -85,7 +75,7 @@ export async function getGuideComplaints() {
         email
       )
     `)
-    .eq('guide_id', guideData.id)
+    .eq('guide_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) {
