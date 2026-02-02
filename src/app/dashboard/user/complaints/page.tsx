@@ -95,11 +95,15 @@ async function CreateComplaintForm() {
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
         >
           <option value="">请选择导游</option>
-          {guides.map((guide) => (
-            <option key={guide.id} value={guide.id}>
-              {guide.name} {guide.email ? `(${guide.email})` : ''}
-            </option>
-          ))}
+          {guides.map((guide) => {
+            // getActiveGuides 返回的对象包含 email（从 guide_profiles 映射），但 Guide 类型中没有
+            const guideWithEmail = guide as Guide & { email?: string | null }
+            return (
+              <option key={guide.id} value={guide.id}>
+                {guide.name} {guideWithEmail.email ? `(${guideWithEmail.email})` : ''}
+              </option>
+            )
+          })}
         </select>
         {guides.length === 0 && (
           <p className="mt-1 text-xs text-gray-500">暂无可用导游</p>
