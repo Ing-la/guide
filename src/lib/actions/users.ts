@@ -19,7 +19,13 @@ export async function getUsers(search?: string) {
     throw new Error(error.message)
   }
 
-  return data as Profile[]
+  // 如果 email 字段为空，尝试从 auth.users 获取（需要管理员权限）
+  // 注意：由于 RLS 限制，这里可能无法访问 auth.users
+  // 更好的方法是通过数据库触发器自动同步 email
+  return (data || []).map((profile) => ({
+    ...profile,
+    email: profile.email || null,
+  })) as Profile[]
 }
 
 export async function getUserById(id: string) {

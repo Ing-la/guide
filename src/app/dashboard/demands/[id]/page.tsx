@@ -2,10 +2,11 @@ import { getDemandById, updateDemand, deleteDemand } from '@/lib/actions/demands
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function DemandDetailPage({ params }: { params: { id: string } }) {
+export default async function DemandDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   let demand
   try {
-    demand = await getDemandById(params.id)
+    demand = await getDemandById(id)
   } catch (error) {
     return (
       <div>
@@ -27,7 +28,7 @@ export default async function DemandDetailPage({ params }: { params: { id: strin
 
   async function updateDemandAction(formData: FormData) {
     'use server'
-    const result = await updateDemand(params.id, formData)
+    const result = await updateDemand(id, formData)
     if (result.success) {
       redirect('/dashboard/demands')
     }
@@ -35,7 +36,7 @@ export default async function DemandDetailPage({ params }: { params: { id: strin
 
   async function deleteDemandAction() {
     'use server'
-    const result = await deleteDemand(params.id)
+    const result = await deleteDemand(id)
     if (result.success) {
       redirect('/dashboard/demands')
     }

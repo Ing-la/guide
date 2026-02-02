@@ -44,7 +44,9 @@ async function UsersList({ search }: { search?: string }) {
                 <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                   {user.nickname || '未设置'}
                 </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{user.id}</td>
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                  {user.email || user.id}
+                </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                   {user.phone || '未设置'}
                 </td>

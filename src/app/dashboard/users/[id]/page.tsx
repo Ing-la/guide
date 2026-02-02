@@ -2,10 +2,11 @@ import { getUserById, updateUser, deleteUser } from '@/lib/actions/users'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function UserDetailPage({ params }: { params: { id: string } }) {
+export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   let user
   try {
-    user = await getUserById(params.id)
+    user = await getUserById(id)
   } catch (error) {
     return (
       <div>
@@ -30,7 +31,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
 
   async function updateUserAction(formData: FormData) {
     'use server'
-    const result = await updateUser(params.id, formData)
+    const result = await updateUser(id, formData)
     if (result.success) {
       redirect('/dashboard/users')
     }
@@ -38,7 +39,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
 
   async function deleteUserAction() {
     'use server'
-    const result = await deleteUser(params.id)
+    const result = await deleteUser(id)
     if (result.success) {
       redirect('/dashboard/users')
     }
@@ -70,6 +71,13 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                 defaultValue={user.nickname || ''}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                邮箱
+              </label>
+              <div className="mt-1 text-sm text-gray-500">{user.email || '未设置'}</div>
             </div>
 
             <div>

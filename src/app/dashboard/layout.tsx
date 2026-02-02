@@ -29,6 +29,7 @@ export default async function DashboardLayout({
         .from('guide_profiles')
         .insert({
           id: user.id,
+          email: user.email || null,
           nickname: user.email?.split('@')[0] || 'User',
           role: 'user',
         })

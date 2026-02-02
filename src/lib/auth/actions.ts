@@ -45,6 +45,7 @@ export async function signUp(formData: FormData) {
   try {
     const { error: profileError } = await supabase.from('guide_profiles').insert({
       id: signUpData.user.id,
+      email: email,
       phone: phone || null,
       nickname: nickname || email.split('@')[0],
       role: role,
@@ -92,6 +93,7 @@ export async function signIn(formData: FormData) {
       try {
         const { error: insertError } = await supabase.from('guide_profiles').insert({
           id: signInData.user.id,
+          email: email,
           nickname: email.split('@')[0],
           role: 'user',
         })

@@ -2,10 +2,11 @@ import { getOrderById, updateOrder, deleteOrder } from '@/lib/actions/orders'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   let order
   try {
-    order = await getOrderById(params.id)
+    order = await getOrderById(id)
   } catch (error) {
     return (
       <div>
@@ -27,7 +28,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
   async function updateOrderAction(formData: FormData) {
     'use server'
-    const result = await updateOrder(params.id, formData)
+    const result = await updateOrder(id, formData)
     if (result.success) {
       redirect('/dashboard/orders')
     }
@@ -35,7 +36,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
   async function deleteOrderAction() {
     'use server'
-    const result = await deleteOrder(params.id)
+    const result = await deleteOrder(id)
     if (result.success) {
       redirect('/dashboard/orders')
     }

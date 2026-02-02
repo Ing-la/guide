@@ -2,10 +2,11 @@ import { getGuideById, updateGuide, deleteGuide } from '@/lib/actions/guides'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function GuideDetailPage({ params }: { params: { id: string } }) {
+export default async function GuideDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   let guide
   try {
-    guide = await getGuideById(params.id)
+    guide = await getGuideById(id)
   } catch (error) {
     return (
       <div>
@@ -27,7 +28,7 @@ export default async function GuideDetailPage({ params }: { params: { id: string
 
   async function updateGuideAction(formData: FormData) {
     'use server'
-    const result = await updateGuide(params.id, formData)
+    const result = await updateGuide(id, formData)
     if (result.success) {
       redirect('/dashboard/guides')
     }
@@ -35,7 +36,7 @@ export default async function GuideDetailPage({ params }: { params: { id: string
 
   async function deleteGuideAction() {
     'use server'
-    const result = await deleteGuide(params.id)
+    const result = await deleteGuide(id)
     if (result.success) {
       redirect('/dashboard/guides')
     }
