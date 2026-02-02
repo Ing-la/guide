@@ -134,6 +134,18 @@ export default async function DashboardLayout({
               >
                 我的中心
               </Link>
+              <Link
+                href="/dashboard/guide/demands"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                需求浏览
+              </Link>
+              <Link
+                href="/dashboard/guide/complaints"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                投诉查看
+              </Link>
             </>
           )}
           {isUser && (
@@ -143,6 +155,18 @@ export default async function DashboardLayout({
                 className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
               >
                 我的中心
+              </Link>
+              <Link
+                href="/dashboard/user/demands"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                需求管理
+              </Link>
+              <Link
+                href="/dashboard/user/complaints"
+                className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                投诉管理
               </Link>
             </>
           )}

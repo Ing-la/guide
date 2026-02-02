@@ -22,6 +22,23 @@ export async function getGuides(search?: string) {
   return data as Guide[]
 }
 
+// 获取所有活跃导游列表（用于投诉表单的下拉选择）
+export async function getActiveGuides() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('guide_guides')
+    .select('*')
+    .eq('status', 'active')
+    .order('name', { ascending: true })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data as Guide[]
+}
+
 export async function getGuideById(id: string) {
   const supabase = await createClient()
 

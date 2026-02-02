@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS public.guide_orders (
 
 CREATE TABLE IF NOT EXISTS public.guide_complaints (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.guide_profiles(id) ON DELETE CASCADE,
+  guide_id UUID REFERENCES public.guide_guides(id) ON DELETE SET NULL,
   order_id UUID REFERENCES public.guide_orders(id) ON DELETE SET NULL,
   type TEXT CHECK (type IN ('order', 'chat')),
   content TEXT NOT NULL,
@@ -71,6 +73,8 @@ CREATE INDEX IF NOT EXISTS idx_guide_demands_status ON public.guide_demands(stat
 CREATE INDEX IF NOT EXISTS idx_guide_orders_user_id ON public.guide_orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_guide_orders_guide_id ON public.guide_orders(guide_id);
 CREATE INDEX IF NOT EXISTS idx_guide_orders_status ON public.guide_orders(status);
+CREATE INDEX IF NOT EXISTS idx_guide_complaints_user_id ON public.guide_complaints(user_id);
+CREATE INDEX IF NOT EXISTS idx_guide_complaints_guide_id ON public.guide_complaints(guide_id);
 CREATE INDEX IF NOT EXISTS idx_guide_complaints_order_id ON public.guide_complaints(order_id);
 CREATE INDEX IF NOT EXISTS idx_guide_complaints_status ON public.guide_complaints(status);
 
@@ -181,6 +185,20 @@ CREATE POLICY "Guide admins can manage guides" ON public.guide_guides
     )
   );
 
+CREATE POLICY "Users can create own demands" ON public.guide_demands
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own demands" ON public.guide_demands
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Guides can view all demands" ON public.guide_demands
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.guide_profiles
+      WHERE id = auth.uid() AND role = 'guide'
+    )
+  );
+
 CREATE POLICY "Guide admins can manage demands" ON public.guide_demands
   FOR ALL USING (
     EXISTS (
@@ -194,6 +212,20 @@ CREATE POLICY "Guide admins can manage orders" ON public.guide_orders
     EXISTS (
       SELECT 1 FROM public.guide_profiles
       WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+CREATE POLICY "Users can create complaints" ON public.guide_complaints
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own complaints" ON public.guide_complaints
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Guides can view complaints about them" ON public.guide_complaints
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.guide_guides
+      WHERE id = guide_complaints.guide_id AND user_id = auth.uid()
     )
   );
 

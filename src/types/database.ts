@@ -48,8 +48,10 @@ export type Order = {
 
 export type Complaint = {
   id: string
+  user_id: string | null
+  guide_id: string | null
   order_id: string | null
-  type: 'order' | 'chat'
+  type: 'order' | 'chat' | null
   content: string
   status: 'pending' | 'resolved'
   created_at: string
