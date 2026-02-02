@@ -16,11 +16,39 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     redirect('/login')
   }
   
-  const { data: currentProfile } = await supabase
-    .from('guide_profiles')
-    .select('role')
-    .eq('id', currentUser.id)
-    .single()
+  let currentProfile
+  try {
+    const { data, error } = await supabase
+      .from('guide_profiles')
+      .select('role')
+      .eq('id', currentUser.id)
+      .single()
+    
+    if (error) {
+      console.error('Failed to fetch current profile:', error)
+      return (
+        <div className="flex h-full items-center justify-center">
+          <div className="text-center">
+            <h1 className="mb-4 text-2xl font-bold text-red-800">错误</h1>
+            <p className="text-gray-600">无法获取用户信息，请检查数据库连接</p>
+            <p className="mt-2 text-sm text-gray-500">{error.message}</p>
+          </div>
+        </div>
+      )
+    }
+    
+    currentProfile = data
+  } catch (error) {
+    console.error('Error checking admin status:', error)
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <h1 className="mb-4 text-2xl font-bold text-red-800">错误</h1>
+          <p className="text-gray-600">检查权限时发生错误</p>
+        </div>
+      </div>
+    )
+  }
   
   if (currentProfile?.role !== 'admin') {
     return (
