@@ -3,6 +3,7 @@ import { getActiveGuides } from '@/lib/actions/guides'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
+import type { Guide } from '@/types/database'
 
 async function ComplaintsList() {
   try {
@@ -66,7 +67,7 @@ async function ComplaintsList() {
 }
 
 async function CreateComplaintForm() {
-  let guides
+  let guides: Guide[] = []
   try {
     guides = await getActiveGuides()
   } catch (error) {
