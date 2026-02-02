@@ -99,11 +99,35 @@ export async function createDemand(formData: FormData) {
     }
   }
 
+  // 先检查用户是否在 guide_profiles 表中
+  const { data: profile, error: profileError } = await supabase
+    .from('guide_profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || !profile) {
+    console.error('User profile not found:', profileError)
+    return { 
+      success: false, 
+      error: `用户资料不存在，请先完善个人资料。错误: ${profileError?.message || '未找到用户资料'}` 
+    }
+  }
+
   const { data: insertedData, error } = await supabase.from('guide_demands').insert(data).select()
 
   if (error) {
-    console.error('Failed to create demand:', error)
-    return { success: false, error: `创建失败: ${error.message} (代码: ${error.code || 'N/A'})` }
+    console.error('Failed to create demand:', {
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      data: data,
+    })
+    return { 
+      success: false, 
+      error: `创建失败: ${error.message} (代码: ${error.code || 'N/A'})` 
+    }
   }
 
   if (!insertedData || insertedData.length === 0) {
