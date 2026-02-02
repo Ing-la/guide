@@ -39,8 +39,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 如果已登录，重定向登录/注册页面到 dashboard
+  // 如果已登录，重定向登录/注册页面
   if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register') && user) {
+    // 尝试获取用户角色并重定向到对应页面
+    // 注意：中间件中不能直接查询数据库，所以先重定向到 dashboard，由 layout 处理
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
