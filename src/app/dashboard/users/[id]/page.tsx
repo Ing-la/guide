@@ -1,4 +1,5 @@
-import { getUserById, updateUser, deleteUser } from '@/lib/actions/users'
+import { getUserById } from '@/lib/actions/users'
+import { updateUserAction, deleteUserAction } from '@/lib/actions/user-detail'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -90,21 +91,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     )
   }
 
-  async function updateUserAction(formData: FormData) {
-    'use server'
-    const result = await updateUser(id, formData)
-    if (result.success) {
-      redirect('/dashboard/users')
-    }
-  }
-
-  async function deleteUserAction() {
-    'use server'
-    const result = await deleteUser(id)
-    if (result.success) {
-      redirect('/dashboard/users')
-    }
-  }
+  // Server Actions 已移到单独文件，避免闭包问题
 
   return (
     <div>
@@ -119,7 +106,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow">
-        <form action={updateUserAction} className="space-y-6">
+        <form action={(formData) => updateUserAction(id, formData)} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
@@ -199,7 +186,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
             >
               保存修改
             </button>
-            <form action={deleteUserAction}>
+            <form action={() => deleteUserAction(id)}>
               <button
                 type="submit"
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
