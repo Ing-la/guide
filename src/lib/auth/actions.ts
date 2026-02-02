@@ -145,8 +145,8 @@ export async function signIn(formData: FormData) {
     return
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/dashboard/user')
+  // 如果登录成功但没有用户对象（理论上不应该发生），重定向到登录页
+  redirect('/login?error=' + encodeURIComponent('登录失败，请重试'))
 }
 
 export async function signOut() {
