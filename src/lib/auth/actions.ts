@@ -18,6 +18,7 @@ export async function signUp(formData: FormData) {
     return
   }
 
+  // 将 role 放入 metadata，触发器会读取它
   const data = {
     email,
     password,
@@ -26,6 +27,7 @@ export async function signUp(formData: FormData) {
         phone: phone || null,
         nickname: nickname || email.split('@')[0],
         project: 'guide',
+        role: role, // 将 role 放入 metadata，触发器会读取
       },
     },
   }
@@ -42,22 +44,25 @@ export async function signUp(formData: FormData) {
     return
   }
 
+  // 使用 upsert 确保 role 被正确设置（即使触发器已经创建了 profile）
   try {
-    const { error: profileError } = await supabase.from('guide_profiles').insert({
+    const { error: profileError } = await supabase.from('guide_profiles').upsert({
       id: signUpData.user.id,
       email: email,
       phone: phone || null,
       nickname: nickname || email.split('@')[0],
       role: role,
+    }, {
+      onConflict: 'id',
     })
     
     if (profileError) {
-      console.error('Failed to create profile:', profileError)
+      console.error('Failed to upsert profile:', profileError)
       redirect(`/register?error=${encodeURIComponent(`注册成功，但创建用户资料失败: ${profileError.message}`)}`)
       return
     }
   } catch (profileError: any) {
-    console.error('Failed to create profile:', profileError)
+    console.error('Failed to upsert profile:', profileError)
     redirect(`/register?error=${encodeURIComponent(`注册成功，但创建用户资料失败: ${profileError?.message || '未知错误'}`)}`)
     return
   }

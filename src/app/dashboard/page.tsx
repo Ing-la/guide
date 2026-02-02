@@ -1,10 +1,35 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
   try {
     const supabase = await createClient()
 
-    // 获取统计数据
+    // 检查用户角色，如果不是管理员则重定向
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('guide_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      const role = profile?.role || 'user'
+
+      // 如果不是管理员，重定向到对应的角色页面
+      if (role !== 'admin') {
+        if (role === 'guide') {
+          redirect('/dashboard/guide')
+        } else {
+          redirect('/dashboard/user')
+        }
+      }
+    }
+
+    // 获取统计数据（仅管理员可见）
     const [usersCount, guidesCount, demandsCount, ordersCount] = await Promise.all([
       supabase.from('guide_profiles').select('id', { count: 'exact', head: true }),
       supabase.from('guide_guides').select('id', { count: 'exact', head: true }),
