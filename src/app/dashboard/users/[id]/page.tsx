@@ -1,22 +1,28 @@
-import { getUserById } from '@/lib/actions/users'
-import { updateUserAction, deleteUserAction } from '@/lib/actions/user-detail'
+import { getUserById, updateUser, deleteUser } from '@/lib/actions/users'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function UserDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ error?: string }>
+}) {
   const { id } = await params
-  
+  const { error: errorMessage } = await searchParams
+
   // 检查是否是管理员
   const supabase = await createClient()
   const {
     data: { user: currentUser },
   } = await supabase.auth.getUser()
-  
+
   if (!currentUser) {
     redirect('/login')
   }
-  
+
   let currentProfile
   try {
     const { data, error } = await supabase
@@ -24,7 +30,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       .select('role')
       .eq('id', currentUser.id)
       .single()
-    
+
     if (error) {
       console.error('Failed to fetch current profile:', error)
       return (
@@ -37,7 +43,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
         </div>
       )
     }
-    
+
     currentProfile = data
   } catch (error) {
     console.error('Error checking admin status:', error)
@@ -50,7 +56,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       </div>
     )
   }
-  
+
   if (currentProfile?.role !== 'admin') {
     return (
       <div className="flex h-full items-center justify-center">
@@ -61,7 +67,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
       </div>
     )
   }
-  
+
   let user
   try {
     user = await getUserById(id)
@@ -91,22 +97,44 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     )
   }
 
-  // Server Actions 已移到单独文件，避免闭包问题
+  // Server Actions 直接定义在组件内部，可以直接访问 id 参数
+  async function updateUserAction(formData: FormData) {
+    'use server'
+    const result = await updateUser(id, formData)
+    if (result.success) {
+      redirect('/dashboard/users')
+    } else {
+      redirect(`/dashboard/users/${id}?error=${encodeURIComponent(result.error || '更新失败')}`)
+    }
+  }
+
+  async function deleteUserAction() {
+    'use server'
+    const result = await deleteUser(id)
+    if (result.success) {
+      redirect('/dashboard/users')
+    } else {
+      redirect(`/dashboard/users/${id}?error=${encodeURIComponent(result.error || '删除失败')}`)
+    }
+  }
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">用户详情</h1>
-        <Link
-          href="/dashboard/users"
-          className="text-sm text-gray-600 hover:text-gray-900"
-        >
+        <Link href="/dashboard/users" className="text-sm text-gray-600 hover:text-gray-900">
           ← 返回列表
         </Link>
       </div>
 
+      {errorMessage && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-800">{decodeURIComponent(errorMessage)}</p>
+        </div>
+      )}
+
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow">
-        <form action={(formData) => updateUserAction(id, formData)} className="space-y-6">
+        <form action={updateUserAction} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
@@ -125,9 +153,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 邮箱
               </label>
-              <div className="mt-1 text-sm text-gray-500">
-                {user.email || '未设置'}
-              </div>
+              <div className="mt-1 text-sm text-gray-500">{user.email || '未设置'}</div>
             </div>
 
             <div>
@@ -186,7 +212,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
             >
               保存修改
             </button>
-            <form action={() => deleteUserAction(id)}>
+            <form action={deleteUserAction}>
               <button
                 type="submit"
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
