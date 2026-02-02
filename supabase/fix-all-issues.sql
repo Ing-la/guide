@@ -1,12 +1,14 @@
 DROP POLICY IF EXISTS "Guide admins can view all profiles" ON public.guide_profiles;
 DROP POLICY IF EXISTS "Guide admins can update all profiles" ON public.guide_profiles;
 DROP POLICY IF EXISTS "Guide admins can delete all profiles" ON public.guide_profiles;
+DROP POLICY IF EXISTS "Guide users can view own profile" ON public.guide_profiles;
+DROP POLICY IF EXISTS "Guide users can update own profile" ON public.guide_profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.guide_profiles;
 DROP POLICY IF EXISTS "Guide admins can manage guides" ON public.guide_guides;
 DROP POLICY IF EXISTS "Guide admins can manage demands" ON public.guide_demands;
 DROP POLICY IF EXISTS "Guide admins can manage orders" ON public.guide_orders;
 DROP POLICY IF EXISTS "Guide admins can manage complaints" ON public.guide_complaints;
 DROP POLICY IF EXISTS "Guide admins can manage guide_titles" ON public.guide_titles;
-DROP POLICY IF EXISTS "Users can insert own profile" ON public.guide_profiles;
 
 CREATE OR REPLACE FUNCTION public.is_guide_admin()
 RETURNS BOOLEAN AS $$
